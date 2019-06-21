@@ -1,5 +1,5 @@
 const express = require("express");
-let Usuario = require("../models/usuario.model");
+let Heroe = require("../models/heroe.model");
 
 const app = express();
 
@@ -10,13 +10,13 @@ app.get("/", async (req, res) => {
   let limite = req.query.limite || 10;
   limite = Number(limite);
   try {
-    let usuarios = await Usuario.find({}, "nombre correo")
+    let heroes = await Heroe.find({}, "nombre poder vivo")
       .skip(desde)
       .limit(limite);
-    let contar = await Usuario.countDocuments({});
+    let contar = await Heroe.countDocuments({});
     res.status(200).json({
       ok: true,
-      usuarios,
+      heroes,
       total: contar
     });
   } catch (error) {
@@ -30,17 +30,18 @@ app.post("/", async (req, res) => {
   try {
     let body = req.body;
 
-    let usuario = new Usuario({
+    let heroe = new Heroe({
       nombre: body.nombre,
-      correo: body.correo,
+      poder: body.poder,
+      vivo: body.vivo
     });
 
-    usuarioGuardado = await usuario.save();
+    heroeGuardado = await heroe.save();
 
     res.status(201).json({
       ok: true,
       mensaje: "Se guardo correctamente",
-      usuarioGuardado
+      heroeGuardado
     });
   } catch (error) {
     res.json({
@@ -53,17 +54,17 @@ app.post("/", async (req, res) => {
 app.get("/:id", async (req,res)=>{
   let id = req.params.id;
   try {
-    let usuario = await Usuario.findById(id)
-    if(usuario === null){
+    let heroe = await Heroe.findById(id)
+    if(heroe === null){
       return res.json({
         ok: false,
-        mensaje: "no existe un usuario con ese ID"
+        mensaje: "no existe un Heroe con ese ID"
       })
     }
     res.json({
       ok:true,
-      mensaje: "Usuario encontrado",
-      usuario
+      mensaje: "Heroe encontrado",
+      heroe
     })
   } catch (error) {
     res.json(error)
@@ -74,17 +75,17 @@ app.delete("/:id", async (req, res) => {
   try {
     var id = req.params.id;
 
-    let usuario = await Usuario.findByIdAndRemove(id);
-    if (usuario === null) {
+    let heroe = await Heroe.findByIdAndRemove(id);
+    if (heroe === null) {
       return res.json({
         ok: false,
-        mensaje: "No existe un usuario con ese ID"
+        mensaje: "No existe un Heroe con ese ID"
       });
     }
     res.json({
       ok: true,
-      mensaje: "Usuario Eliminado",
-      usuario
+      mensaje: "Heroe Eliminado",
+      heroe
     });
   } catch (error) {
     res.json(error);
@@ -100,10 +101,10 @@ app.put('/:id', async (req,res)=>{
           poder: body.poder,
           vivo: body.vivo
       }
-      let usuario = await Usuario.findByIdAndUpdate(id, {$set:cambio}, {new:true});
+      let heroe = await Heroe.findByIdAndUpdate(id, {$set:cambio}, {new:true});
       res.json({
           ok:true,
-          usuario,
+          heroe,
       })
   } catch (error) {
       res.json(error)
