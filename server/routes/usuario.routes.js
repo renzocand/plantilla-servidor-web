@@ -1,4 +1,5 @@
 const express = require("express");
+const nodemailer = require("nodemailer");
 let Usuario = require("../models/usuario.model");
 
 const app = express();
@@ -27,19 +28,51 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/", async (req, res) => {
+  
   try {
     let body = req.body;
 
+
+    const output = `
+    <p>Te registraste correctamente</p>
+    <h3>Detalles de contacto</h3>
+    <ul>  
+      <li>Nombre: ${body.nombre}</li>
+      <li>Email: ${body.correo}</li>
+    </ul>
+    <h3>Mensaje</h3>
+    <p>Enviando mensaje de prueba, aqui ira el briefing</p>
+  `;
+
     let usuario = new Usuario({
       nombre: body.nombre,
-      correo: body.correo,
+      correo: body.correo
+    });
+
+    let transporter = await nodemailer.createTransport({
+      host: "renzocandiotti.com",
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: "informes@renzocandiotti.com", // generated ethereal user
+        pass: "}Q#(_-*Rc1DM" // generated ethereal password
+      }
     });
 
     usuarioGuardado = await usuario.save();
 
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+      from: '"UsimpleX 👻" <informes@renzocandiotti.com>', // sender address
+      to: `${usuario.correo}, renzocand@gmail.com`, // list of receivers
+      subject: "Hello ✔", // Subject line
+      html: output // html body
+    });
+
     res.status(201).json({
       ok: true,
-      mensaje: "Se guardo correctamente",
+      mensaje: "El correo se envio correctamente",
+      info: info.messageId,
       usuarioGuardado
     });
   } catch (error) {
@@ -49,65 +82,5 @@ app.post("/", async (req, res) => {
     });
   }
 });
-
-app.get("/:id", async (req,res)=>{
-  let id = req.params.id;
-  try {
-    let usuario = await Usuario.findById(id)
-    if(usuario === null){
-      return res.json({
-        ok: false,
-        mensaje: "no existe un usuario con ese ID"
-      })
-    }
-    res.json({
-      ok:true,
-      mensaje: "Usuario encontrado",
-      usuario
-    })
-  } catch (error) {
-    res.json(error)
-  }
-})
-
-app.delete("/:id", async (req, res) => {
-  try {
-    var id = req.params.id;
-
-    let usuario = await Usuario.findByIdAndRemove(id);
-    if (usuario === null) {
-      return res.json({
-        ok: false,
-        mensaje: "No existe un usuario con ese ID"
-      });
-    }
-    res.json({
-      ok: true,
-      mensaje: "Usuario Eliminado",
-      usuario
-    });
-  } catch (error) {
-    res.json(error);
-  }
-});
-
-app.put('/:id', async (req,res)=>{
-  try {
-      var id = req.params.id;
-      let body = req.body;
-      let cambio = {
-          nombre: body.nombre,
-          poder: body.poder,
-          vivo: body.vivo
-      }
-      let usuario = await Usuario.findByIdAndUpdate(id, {$set:cambio}, {new:true});
-      res.json({
-          ok:true,
-          usuario,
-      })
-  } catch (error) {
-      res.json(error)
-  }
-})
 
 module.exports = app;
